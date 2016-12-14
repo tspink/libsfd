@@ -22,6 +22,12 @@
 using namespace sfd;
 using namespace sfd::net;
 
+/**
+ * Constructs a new managed socket object, with the given address family, socket type and protocol type.
+ * @param family The address family to associate with the new socket.
+ * @param type The type of socket being created.
+ * @param protocol The protocol of the new socket.
+ */
 Socket::Socket(AddressFamily::AddressFamily family, SocketType::SocketType type, ProtocolType::ProtocolType protocol)
 	: FileDescriptor(::socket(family, type, protocol)),
 		_family(family),
@@ -29,12 +35,23 @@ Socket::Socket(AddressFamily::AddressFamily family, SocketType::SocketType type,
 		_protocol(protocol),
 		_remote_endpoint(NULL)
 {
+	// Ensure that the created file-descriptor is valid.
 	if (!valid()) {
 		throw SocketException("Error whilst creating socket");
 	}
 }
 
-Socket::Socket(int fd, AddressFamily::AddressFamily family, SocketType::SocketType type, ProtocolType::ProtocolType protocol, const EndPoint *rep)
+/**
+ * Constructs a managed socket object for the given pre-existing socketfd.  This constructor should only
+ * be used when constructing the corresponding managed socket object, when accepting a connection on a
+ * listening socket.
+ * @param fd The native file-descriptor of the socket.
+ * @param family The address family of the socket.
+ * @param type The type of the socket.
+ * @param protocol The protocol of the socket.
+ * @param rep The associated remote-endpoint of the socket.
+ */
+Socket::Socket(FileDescriptor::NativeFD fd, AddressFamily::AddressFamily family, SocketType::SocketType type, ProtocolType::ProtocolType protocol, const EndPoint *rep)
 	: FileDescriptor(fd),
 		_family(family),
 		_type(type),
@@ -47,14 +64,14 @@ Socket::Socket(int fd, AddressFamily::AddressFamily family, SocketType::SocketTy
 }
 
 /**
- * Binds the socket to a particular end-point.
- * @param ep The end-point with which to bind the socket.
+ * Binds the socket to a particular endpoint.
+ * @param ep The endpoint with which to bind the socket.
  */
 void Socket::bind(const EndPoint& ep)
 {
-	// Make sure the end-point family matches the family of the socket.
+	// Make sure the endpoint family matches the family of the socket.
 	if (ep.family() != _family)
-		throw SocketException("End-point not of the correct family");
+		throw SocketException("Endpoint not of the correct family");
 
 	// Obtain the sockaddr from the endpoint.
 	socklen_t sa_len;
@@ -103,7 +120,7 @@ Socket* Socket::accept()
 		return NULL;
 	}
 
-	// Create the associated remote end-point.
+	// Create the associated remote endpoint.
 	const EndPoint *rep = EndPoint::from_sockaddr(sa);
 	free(sa);
 
@@ -112,13 +129,14 @@ Socket* Socket::accept()
 }
 
 /**
- * Uses this socket to connect to a remote endpoint.
+ * Connects to the given remote endpoint.
+ * @param ep The endpoint describing where to connect.
  */
 void Socket::connect(const EndPoint& ep)
 {
-	// Make sure the end-point family matches the family of the socket.
+	// Make sure the endpoint family matches the family of the socket.
 	if (ep.family() != _family)
-		throw SocketException("End-point not of the correct family");
+		throw SocketException("Endpoint not of the correct family");
 
 	// Obtain the sockaddr from the endpoint.
 	socklen_t sa_len;
@@ -135,4 +153,106 @@ void Socket::connect(const EndPoint& ep)
 	if (rc < 0) {
 		throw SocketException("Unable to connect");
 	}
+}
+
+void Socket::shutdown(ShutdownModes::ShutdownModes mode)
+{
+	int how;
+	
+	switch (mode) {
+	case ShutdownModes::Read:
+		how = SHUT_RD;
+		break;
+	case ShutdownModes::Write:
+		how = SHUT_WR;
+		break;
+	case ShutdownModes::Both:
+		how = SHUT_RDWR;
+		break;
+	default:
+		throw SocketException("Invalid shutdown mode");
+	}
+	
+	if (::shutdown(fd(), how) < 0) {
+		throw SocketException("Unable to shutdown socket");
+	}
+}
+
+size_t Socket::send_to(const void* message, size_t length, const EndPoint& rep)
+{
+	// Make sure the remote endpoint family matches the family of this socket.
+	if (rep.family() != _family)
+		throw SocketException("Endpoint not of the correct family");
+
+	// Obtain the sockaddr from the endpoint.
+	socklen_t sa_len;
+	struct sockaddr *sa = rep.create_sockaddr(sa_len);
+	if (!sa) {
+		throw SocketException("Unable to create sockaddr from endpoint");
+	}
+	
+	ssize_t rc = ::sendto(fd(), message, length, 0, sa, sa_len);
+	rep.free_sockaddr(sa);
+	
+	if (rc < 0) {
+		throw SocketException("Unable to send message");
+	}
+	
+	return (size_t)rc;
+}
+
+size_t Socket::recv_from(void* buffer, size_t length, EndPoint* rep)
+{
+	throw Exception::NotImplementedException;
+}
+
+
+void Socket::set_option_raw(int level, int setting, const void *value, size_t value_size)
+{
+	if (::setsockopt(fd(), level, setting, value, (socklen_t)value_size) < 0) {
+		throw SocketException("Unable to set socket option");
+	}
+}
+
+void Socket::get_option_raw(int level, int setting, void* value, size_t* value_size) const
+{
+	socklen_t native_value_size;
+	
+	if (value_size) native_value_size = *value_size;
+	
+	if (::getsockopt(fd(), level, setting, value, &native_value_size) < 0) {
+		throw SocketException("Unable to get socket option");
+	}
+	
+	if (value_size) *value_size = native_value_size;
+}
+
+bool Socket::debug() const
+{
+	return get_option<bool>(SOL_SOCKET, SO_DEBUG);
+}
+
+void Socket::debug(bool enable)
+{
+	set_option<bool>(SOL_SOCKET, SO_DEBUG, enable);
+}
+
+bool Socket::reuse_address() const
+{
+	return get_option<bool>(SOL_SOCKET, SO_REUSEADDR);
+}
+
+void Socket::reuse_address(bool enable)
+{
+	set_option<bool>(SOL_SOCKET, SO_REUSEADDR, enable);
+}
+
+bool Socket::broadcast() const
+{
+	return get_option<bool>(SOL_SOCKET, SO_BROADCAST);
+}
+
+void Socket::broadcast(bool enable)
+{
+	set_option<bool>(SOL_SOCKET, SO_BROADCAST, enable);
 }

@@ -25,6 +25,16 @@
 
 namespace sfd {
 	namespace net {
+		
+		namespace ShutdownModes
+		{
+			enum ShutdownModes
+			{
+				Read = 1,
+				Write = 2,
+				Both = 3
+			};
+		}
 
 		class Socket : public FileDescriptor {
 		public:
@@ -35,14 +45,47 @@ namespace sfd {
 			Socket *accept();
 
 			void connect(const EndPoint& ep);
+			void shutdown(ShutdownModes::ShutdownModes mode = ShutdownModes::Both);
+			
+			size_t send_to(const void *message, size_t length, const EndPoint& rep);
+			size_t recv_from(void *buffer, size_t length, EndPoint *rep);
 
 			const EndPoint *remote_endpoint() const {
 				return _remote_endpoint;
 			}
+			
+			bool debug() const;
+			void debug(bool enable);
+
+			bool reuse_address() const;
+			void reuse_address(bool enable);
+			
+			bool broadcast() const;
+			void broadcast(bool enable);
+			
+		protected:
+			void set_option_raw(int level, int setting, const void *value, size_t value_size);
+			void get_option_raw(int level, int setting, void *value, size_t *value_size) const;
+			
+			template<typename T>
+			void set_option(int level, int setting, T value)
+			{
+				set_option_raw(level, setting, &value, sizeof(value));
+			}
+
+			template<typename T>
+			T get_option(int level, int setting) const
+			{
+				T value;
+				size_t value_size = sizeof(value);
+				
+				get_option_raw(level, setting, &value, &value_size);
+				return value;
+			}
 
 		private:
-			Socket(int fd, AddressFamily::AddressFamily family, SocketType::SocketType type, ProtocolType::ProtocolType protocol, const EndPoint *rep);
-			
+			Socket(FileDescriptor::NativeFD fd, AddressFamily::AddressFamily family, SocketType::SocketType type, ProtocolType::ProtocolType protocol, const EndPoint *rep);
+						
 			AddressFamily::AddressFamily _family;
 			SocketType::SocketType _type;
 			ProtocolType::ProtocolType _protocol;
@@ -54,6 +97,13 @@ namespace sfd {
 
 			SocketException(const std::string& msg) : Exception(msg) {
 			}
+		};
+		
+		class IPSocket : public Socket {
+		public:
+			IPSocket(SocketType::SocketType type, ProtocolType::ProtocolType protocol);
+			
+			void multicast_loopback(bool enable);
 		};
 	}
 }
