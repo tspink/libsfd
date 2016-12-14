@@ -13,8 +13,11 @@ ldflags := -shared
 
 all: $(out)
 
-$(out): $(obj)
+$(out): $(obj) $(out-dir)
 	g++ -o $@ $(ldflags) $(obj)
+	
+$(out-dir):
+	mkdir $@ 
 
 %.o: %.cpp %.d
 	g++ -c -o $@ $(cxxflags) $<
