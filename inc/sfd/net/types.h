@@ -43,6 +43,14 @@ namespace sfd {
 
 			enum ProtocolType {
 				None = 0,
+				
+				// Well-defined IP Protocols
+				IP   = 0,
+				ICMP = 1,
+				IGMP = 2,
+				TCP = 6,
+				UDP = 17,
+				RAW = 255
 			};
 		}
 	}
