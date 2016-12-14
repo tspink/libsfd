@@ -57,6 +57,10 @@ namespace sfd {
 				return IPAddress(0);
 			}
 
+			static inline IPAddress broadcast() {
+				return IPAddress(0xffffffff);
+			}
+
 			static inline IPAddress localhost() {
 				return from_octets(127, 0, 0, 1);
 			}
