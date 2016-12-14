@@ -26,6 +26,8 @@ namespace sfd {
 	 */
 	class Exception {
 	public:
+		static const Exception NotImplementedException;
+		
 		/**
 		 * Constructs an exception object, described by the given message.
 		 */
