@@ -13,6 +13,11 @@ ldflags := -shared
 
 all: $(out)
 
+clean: .FORCE
+	rm -f $(out)
+	rm -f $(obj)
+	rm -f $(dep)
+
 $(out): $(obj) $(out-dir)
 	g++ -o $@ $(ldflags) $(obj)
 	
@@ -26,3 +31,5 @@ $(out-dir):
 	g++ -M -MT $(@:.d=.o) -o $@ $(cxxflags) $<
 	
 -include $(dep)
+
+.PHONY: .FORCE
