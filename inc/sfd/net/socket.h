@@ -95,6 +95,9 @@ namespace sfd {
 		class SocketException : public Exception {
 		public:
 
+			SocketException(const std::string& msg, const Exception& inner) : Exception(msg, inner) {
+			}
+
 			SocketException(const std::string& msg) : Exception(msg) {
 			}
 		};

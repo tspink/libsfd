@@ -31,7 +31,14 @@ namespace sfd {
 		/**
 		 * Constructs an exception object, described by the given message.
 		 */
-		Exception(const std::string& msg) : _msg(msg) {
+		Exception(const std::string& msg) : _msg(msg), _inner_exception(nullptr) {
+		}
+		
+		/**
+		 * Constructs an exception object, described by the given message and
+		 * associated with the given inner exception.
+		 */
+		Exception(const std::string& msg, const Exception& inner) : _msg(msg), _inner_exception(&inner) {
 		}
 
 		/**
@@ -40,8 +47,14 @@ namespace sfd {
 		const std::string& message() const {
 			return _msg;
 		}
+		
+		/**
+		 * Returns the inner exception associated with this exception object (if any).
+		 */
+		const Exception *inner_exception() const { return _inner_exception; }
 
 	private:
 		const std::string _msg;
+		const Exception *_inner_exception;
 	};
 }

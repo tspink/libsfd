@@ -234,7 +234,11 @@ bool Socket::debug() const
 
 void Socket::debug(bool enable)
 {
-	set_option<bool>(SOL_SOCKET, SO_DEBUG, enable);
+	try {
+		set_option<bool>(SOL_SOCKET, SO_DEBUG, enable);
+	} catch (const SocketException& ex) {
+		throw SocketException("Unable to set debug socket option", ex);
+	}
 }
 
 bool Socket::reuse_address() const
@@ -244,15 +248,23 @@ bool Socket::reuse_address() const
 
 void Socket::reuse_address(bool enable)
 {
-	set_option<bool>(SOL_SOCKET, SO_REUSEADDR, enable);
+	try {
+		set_option<bool>(SOL_SOCKET, SO_REUSEADDR, enable);
+	} catch (const SocketException& ex) {
+		throw SocketException("Unable to set reuse address socket option.", ex);
+	}
 }
 
 bool Socket::broadcast() const
 {
-	return get_option<bool>(SOL_SOCKET, SO_BROADCAST);
+		return get_option<bool>(SOL_SOCKET, SO_BROADCAST);
 }
 
 void Socket::broadcast(bool enable)
 {
-	set_option<bool>(SOL_SOCKET, SO_BROADCAST, enable);
+	try {
+		set_option<bool>(SOL_SOCKET, SO_BROADCAST, enable);
+	} catch (const SocketException& ex) {
+		throw SocketException("Unable to set broadcast socket option.", ex);
+	}
 }
