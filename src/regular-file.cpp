@@ -62,6 +62,14 @@ int RegularFile::sfd_mode_to_native_mode(FileOpenMode::FileOpenMode mode)
 	if (mode & FileOpenMode::TRUNCATE) {
 		native_mode |= O_TRUNC;
 	}
+
+	if (mode & FileOpenMode::SYNC) {
+		native_mode |= O_SYNC;
+	}
+
+	if (mode & FileOpenMode::NO_CTTY) {
+		native_mode |= O_NOCTTY;
+	}
 	
 	return native_mode;
 }

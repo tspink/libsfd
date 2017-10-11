@@ -28,9 +28,11 @@ namespace sfd {
 			WRITE		= 2,
 			CREATE		= 4,
 			TRUNCATE	= 8,
+			SYNC		= 16,
+			NO_CTTY		= 32
 		};
 
-		static inline FileOpenMode operator|(FileOpenMode& l, FileOpenMode& r) {
+		static inline FileOpenMode operator|(const FileOpenMode& l, const FileOpenMode& r) {
 			return (FileOpenMode) ((unsigned long) l | (unsigned long) r);
 		}
 	}
