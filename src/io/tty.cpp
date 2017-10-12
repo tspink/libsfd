@@ -18,6 +18,7 @@
  */
 #include <sfd/io/tty.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 #include <cstring>
 
 using namespace sfd::io;
@@ -93,6 +94,22 @@ void TTY::drain()
 {
 	tcdrain(fd());
 }
+
+void TTY::set_rts(bool set)
+{
+	int status;
+    if (ioctl(fd(), TIOCMGET, &status)) {
+        throw TTYException("Unable to acquire control status");
+    }
+	
+    if (set) status |= TIOCM_RTS;
+    else status &= ~TIOCM_RTS;
+    
+	if (ioctl(fd(), TIOCMSET, &status)) {
+        throw TTYException("Unable to apply control status");
+    }
+}
+
 
 unsigned int TTY::sfd_speed_to_native_speed(BaudRate::BaudRate speed)
 {

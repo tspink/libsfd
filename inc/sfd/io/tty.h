@@ -63,6 +63,8 @@ namespace sfd {
 
 			void drain();
 			
+			void set_rts(bool set);
+			
 		private:
 			static unsigned int sfd_speed_to_native_speed(BaudRate::BaudRate speed);
 
