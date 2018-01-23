@@ -1,7 +1,7 @@
 /**
- * inc/sfd/net/types.h
+ * inc/sfd/net/l2-endpoint.h
  *
- * Copyright (c) 2016 Tom Spink <tspink@gmail.com>
+ * Copyright (c) 2018 Tom Spink <tspink@gmail.com>
 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,52 +18,31 @@
  */
 #pragma once
 
+#include <sfd/net/endpoint.h>
+#include <sfd/net/bt-address.h>
+
 namespace sfd {
 	namespace net {
-		namespace AddressFamily {
 
-			enum AddressFamily {
-				Unix = 1,
-				IPv4 = 2,
-				IPv6 = 10,
-				Bluetooth = 31,
-				None = 255
-			};
-		}
+		class L2EndPoint : public EndPoint {
+		public:
+			L2EndPoint(const BluetoothAddress& addr, short psm);
+			~L2EndPoint();
 
-		namespace SocketType {
+			const BluetoothAddress& address() const {
+				return _addr;
+			}
 
-			enum SocketType {
-				Stream = 1,
-				Datagram = 2,
-				Raw = 3,
-				SeqPacket = 5,
-			};
-		}
+			short psm() const {
+				return _psm;
+			}
 
-		namespace ProtocolType {
-
-			enum ProtocolType {
-				None = 0,
-				
-				// Well-defined IP Protocols
-				IP   = 0,
-				ICMP = 1,
-				IGMP = 2,
-				TCP = 6,
-				UDP = 17,
-				RAW = 255,
-				
-				// Bluetooth
-				BT_L2CAP = 0,
-				BT_HCI = 1,
-				BT_SCO = 2,
-				BT_RFCOMM = 3,
-				BT_BNEP = 4,
-				BT_CMTP = 5,
-				BT_HIDP = 6,
-				BT_AVDTP = 7,
-			};
-		}
+			virtual struct sockaddr *create_sockaddr(socklen_t& len) const override;
+			virtual void free_sockaddr(struct sockaddr *sa) const override;
+			
+		private:
+			const BluetoothAddress _addr;
+			short _psm;
+		};
 	}
 }

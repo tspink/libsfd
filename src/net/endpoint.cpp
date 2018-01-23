@@ -18,10 +18,14 @@
  */
 #include <sfd/net/ip-endpoint.h>
 #include <sfd/net/unix-endpoint.h>
+#include <sfd/net/l2-endpoint.h>
 
 #include <malloc.h>
 #include <netinet/in.h>
 #include <sys/un.h>
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/l2cap.h>
 
 using namespace sfd::net;
 
@@ -117,3 +121,36 @@ void UnixEndPoint::free_sockaddr(struct sockaddr* sa) const
 {
 	free(sa);
 }
+
+L2EndPoint::L2EndPoint(const BluetoothAddress& addr, short psm) : EndPoint(AddressFamily::Bluetooth), _addr(addr), _psm(psm)
+{
+
+}
+
+L2EndPoint::~L2EndPoint()
+{
+
+}
+
+struct sockaddr* L2EndPoint::create_sockaddr(socklen_t& len) const
+{
+	// Allocate storage for the sockaddr.
+	struct sockaddr_l2 *sa = (struct sockaddr_l2 *)malloc(sizeof(struct sockaddr_l2));
+	if (!sa) return NULL;
+	
+	// Populate the sockaddr.
+	bzero(sa, sizeof(*sa));
+	
+	sa->l2_family = AF_BLUETOOTH;
+	sa->l2_bdaddr = *(bdaddr_t *)_addr.address().address;
+	sa->l2_psm = htobs(_psm);
+	
+	// Return the sockaddr.
+	return (struct sockaddr *)sa;
+}
+
+void L2EndPoint::free_sockaddr(struct sockaddr* sa) const
+{
+	free(sa);
+}
+
