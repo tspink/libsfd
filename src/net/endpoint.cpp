@@ -76,6 +76,8 @@ struct sockaddr *IPEndPoint::create_sockaddr(socklen_t& len) const
 	struct sockaddr_in *sa = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
 	if (!sa) return NULL;
 	
+	len = sizeof(struct sockaddr_in);
+	
 	// Populate the sockaddr.
 	sa->sin_family = AF_INET;
 	sa->sin_port = htons(_port);
@@ -109,6 +111,8 @@ struct sockaddr* UnixEndPoint::create_sockaddr(socklen_t& len) const
 	struct sockaddr_un *sa = (struct sockaddr_un *)malloc(sizeof(struct sockaddr_un));
 	if (!sa) return NULL;
 	
+	len = sizeof(struct sockaddr_un);
+	
 	// Populate the sockaddr.
 	sa->sun_family = AF_UNIX;
 	strncpy(sa->sun_path, _path.c_str(), sizeof(sa->sun_path)-1);
@@ -137,6 +141,8 @@ struct sockaddr* L2EndPoint::create_sockaddr(socklen_t& len) const
 	// Allocate storage for the sockaddr.
 	struct sockaddr_l2 *sa = (struct sockaddr_l2 *)malloc(sizeof(struct sockaddr_l2));
 	if (!sa) return NULL;
+	
+	len = sizeof(struct sockaddr_l2);
 	
 	// Populate the sockaddr.
 	bzero(sa, sizeof(*sa));
