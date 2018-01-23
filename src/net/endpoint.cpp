@@ -46,6 +46,19 @@ const EndPoint *EndPoint::from_sockaddr(const struct sockaddr *sa)
 		// Create an IPEndPoint
 		const struct sockaddr_in *sa_in = (const struct sockaddr_in *)sa;
 		return new IPEndPoint(IPAddress(ntohl(sa_in->sin_addr.s_addr)), ntohs(sa_in->sin_port));
+	} else if (sa->sa_family == AF_BLUETOOTH) {
+		// TODO: We need to determine which bluetooth protocol we're using
+		const struct sockaddr_l2 *sa_l2 = (const struct sockaddr_l2 *)sa;
+		
+		RawAddress raw_addr;
+		raw_addr.address[0] = sa_l2->l2_bdaddr.b[0];
+		raw_addr.address[1] = sa_l2->l2_bdaddr.b[1];
+		raw_addr.address[2] = sa_l2->l2_bdaddr.b[2];
+		raw_addr.address[3] = sa_l2->l2_bdaddr.b[3];
+		raw_addr.address[4] = sa_l2->l2_bdaddr.b[4];
+		raw_addr.address[5] = sa_l2->l2_bdaddr.b[5];
+		
+		return new L2EndPoint(BluetoothAddress(raw_addr), sa_l2->l2_psm);
 	} else {
 		return NULL;
 	}
