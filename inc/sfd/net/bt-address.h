@@ -39,7 +39,16 @@ namespace sfd {
 			}
 
 			std::string to_string() const {
-				return "X";
+				char buffer[32] = {0};
+				sprintf(buffer, "%02x:%02x:%02x:%02x:%02x:%02x", 
+						_address.address[0],
+						_address.address[1],
+						_address.address[2],
+						_address.address[3],
+						_address.address[4],
+						_address.address[5]);
+				
+				return std::string(buffer);
 			}
 			
 			static inline BluetoothAddress any() {
