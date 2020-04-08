@@ -22,6 +22,7 @@
 #include <sfd/net/types.h>
 #include <sfd/net/endpoint.h>
 #include <sfd/exception.h>
+#include <string>
 
 namespace sfd {
 	namespace net {
@@ -62,6 +63,8 @@ namespace sfd {
 			
 			bool broadcast() const;
 			void broadcast(bool enable);
+
+			void bind_to_device(const std::string& device_name);
 			
 		protected:
 			void set_option_raw(int level, int setting, const void *value, size_t value_size);

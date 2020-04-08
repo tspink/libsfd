@@ -18,6 +18,8 @@
  */
 #include <sfd/net/socket.h>
 #include <sys/socket.h>
+#include <net/if.h>
+#include <string.h>
 
 using namespace sfd;
 using namespace sfd::net;
@@ -203,7 +205,27 @@ size_t Socket::send_to(const void* message, size_t length, const EndPoint& rep)
 
 size_t Socket::recv_from(void* buffer, size_t length, EndPoint* rep)
 {
-	throw Exception::NotImplementedException;
+	socklen_t sa_len;
+	struct sockaddr *sa;
+	
+	if (rep != nullptr) {
+		sa = rep->create_sockaddr(sa_len);
+		if (!sa) {
+			throw SocketException("Unable to create sockaddr from endpoint");
+		}
+	}
+
+	ssize_t rc = ::recvfrom(fd(), buffer, length, 0, sa, &sa_len);
+	
+	if (rc < 0) {
+		throw SocketException("Unable to receive message");
+	}
+
+	if (rep != nullptr) {
+		*rep = *rep->from_sockaddr(sa);
+	}
+	
+	return (size_t)rc;
 }
 
 
@@ -266,5 +288,17 @@ void Socket::broadcast(bool enable)
 		set_option<bool>(SOL_SOCKET, SO_BROADCAST, enable);
 	} catch (const SocketException& ex) {
 		throw SocketException("Unable to set broadcast socket option.", ex);
+	}
+}
+
+void Socket::bind_to_device(const std::string& device_name) {
+	try {
+		struct ifreq ifr;
+		bzero(&ifr, sizeof(ifr));
+		strncpy(ifr.ifr_ifrn.ifrn_name, device_name.c_str(), sizeof(ifr.ifr_ifrn.ifrn_name));
+
+		set_option_raw(SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
+	} catch (const SocketException& ex) {
+		throw SocketException("Unable to bind socket to device.", ex);
 	}
 }
