@@ -29,6 +29,27 @@ namespace sfd {
 			IPEndPoint(const IPAddress& addr, int port);
 			~IPEndPoint();
 
+			IPEndPoint(const IPEndPoint& o) : EndPoint(o.family()), _addr(o._addr), _port(o._port) { }
+			IPEndPoint(IPEndPoint&& o) noexcept : EndPoint(o.family()), _addr(o._addr), _port(o._port) { }
+
+			IPEndPoint& operator=(const IPEndPoint& o)
+			{
+				IPEndPoint tmp(o);
+				*this = std::move(tmp);
+				return *this;
+			}
+
+			IPEndPoint& operator=(IPEndPoint&& o) noexcept
+			{
+				if (this == &o) {
+					return *this;
+				}
+
+				_addr = o._addr;
+				_port = o._port;
+				return *this;
+			}
+
 			const IPAddress& address() const {
 				return _addr;
 			}
@@ -41,7 +62,7 @@ namespace sfd {
 			virtual void free_sockaddr(struct sockaddr *sa) const override;
 
 		private:
-			const IPAddress _addr;
+			IPAddress _addr;
 			int _port;
 		};
 	}

@@ -31,6 +31,27 @@ namespace sfd {
 			IPAddress(AddressStorageType address) : _address(address) {
 			}
 
+			IPAddress(const IPAddress& other) : _address(other._address) {
+			}
+
+			IPAddress(IPAddress&& other) noexcept : _address(other._address) {
+			}
+
+			IPAddress& operator=(const IPAddress& other) {
+				IPAddress tmp(other);
+				*this = std::move(tmp);
+				return *this;
+			}
+
+			IPAddress& operator=(IPAddress&& other) noexcept {
+				if (this == &other) {
+					return *this;
+				}
+
+				_address = other._address;
+				return *this;
+			}
+
 			AddressStorageType address() const {
 				return _address;
 			}
